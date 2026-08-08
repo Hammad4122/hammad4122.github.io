@@ -437,7 +437,19 @@ table.tr-tab tr.lit{opacity:1;transform:none;transition:opacity .3s ease,transfo
 /* ================================================================
    SKILLS
    ================================================================ */
-.stack{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(232px,100%),1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:var(--r);overflow:hidden}
+/* Four categories across, then "Learning now" as a full-width band beneath.
+   auto-fit was fitting 4 tracks for 5 sections, stranding the fifth next to
+   three empty cells. A fixed count plus a spanning last row removes the hole,
+   and the band reads as a deliberate separation rather than a leftover.
+   Column counts are stepped so it never lands on 3 — with four categories,
+   3 columns leaves the same kind of gap this is meant to fix. */
+.stack{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:var(--r);overflow:hidden}
+@media(max-width:1040px){.stack{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.stack{grid-template-columns:1fr}}
+
+.stack section.learning{grid-column:1/-1}
+/* laid out along the band instead of down a column */
+.stack section.learning ul{flex-direction:row;flex-wrap:wrap;gap:10px 30px}
 .stack section{background:var(--panel);padding:26px 24px}
 .stack h3{
   font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;
@@ -994,7 +1006,7 @@ df.export(<span style="color:var(--amber)">"trace.json"</span>) <span style="col
     <div class="rv">
       <p class="eyebrow">Stack</p>
       <h2 class="h2">What I actually use.</h2>
-      <p class="lede">Listed only where a project on this page backs it up. The last column is what I'm learning right now, kept separate on purpose.</p>
+      <p class="lede">Listed only where a project on this page backs it up. What I'm learning right now sits separately at the bottom.</p>
     </div>
 
     <div class="stack rv">
