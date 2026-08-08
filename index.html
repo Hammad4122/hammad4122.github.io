@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Muhammad Hammad Ateeq — Python Data Tooling &amp; Dashboards</title>
+<meta name="description" content="Software Engineering student in Islamabad building Python data cleaning tools, Streamlit dashboards, and automated reports. Published PyPI package, four live data apps. Available for freelance work.">
+<meta name="author" content="Muhammad Hammad Ateeq">
+
+<!-- ============================================================
+     SOCIAL PREVIEW
+     TODO: replace the URL below with your live domain once deployed,
+     and drop a 1200x630 preview image next to this file as og-image.png
+     ============================================================ -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Muhammad Hammad Ateeq — Python Data Tooling &amp; Dashboards">
+<meta property="og:description" content="I build Python tools that clean data, surface what changed, and report it automatically.">
+<meta property="og:image" content="og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ================================================================
+   TOKENS
+   ================================================================ */
+:root{
+  --ink:#070A08;
+  --panel:#0D1310;
+  --panel-2:#121B16;
+  --panel-3:#18241D;
+  --rule:#1D2B23;
+  --rule-hi:#2A3E32;
+
+  --fg:#E4EBE6;
+  --fg-mid:#9FB0A6;
+  --fg-dim:#68796F;
+
+  --green:#52D98A;
+  --green-soft:#8BE9B4;
+  --green-deep:#1E8A55;
+  --green-wash:rgba(82,217,138,.10);
+  --green-line:rgba(82,217,138,.26);
+
+  --amber:#E0A458;
+  --amber-wash:rgba(224,164,88,.10);
+
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+
+  --shell:1180px;
+  --gutter:clamp(20px,5vw,48px);
+  --pad-y:clamp(72px,10vw,128px);
+  --r:14px;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--ink);
+  color:var(--fg);
+  font-family:var(--sans);
+  font-size:16.5px;
+  line-height:1.72;
+  font-weight:400;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+img{max-width:100%;display:block;}
+a{color:inherit;text-decoration:none}
+button,input,textarea,select{font:inherit;color:inherit}
+
+/* ambient field — quiet, not decorative noise */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(760px 460px at 78% -8%,rgba(82,217,138,.09),transparent 62%),
+    radial-gradient(620px 420px at 4% 42%,rgba(82,217,138,.045),transparent 60%);
+}
+body::after{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background-image:linear-gradient(rgba(82,217,138,.045) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(82,217,138,.045) 1px,transparent 1px);
+  background-size:64px 64px;
+  mask-image:radial-gradient(circle at 50% 22%,#000 0%,transparent 72%);
+  -webkit-mask-image:radial-gradient(circle at 50% 22%,#000 0%,transparent 72%);
+}
+
+.shell{width:100%;max-width:var(--shell);margin-inline:auto;padding-inline:var(--gutter);position:relative;z-index:1}
+
+::selection{background:var(--green);color:#04180D}
+:focus-visible{outline:2px solid var(--green);outline-offset:3px;border-radius:4px}
+
+.skip{position:absolute;left:-9999px;top:0;background:var(--green);color:#04180D;padding:12px 18px;z-index:999;font-family:var(--mono);font-weight:700;border-radius:0 0 8px 0}
+.skip:focus{left:0}
+
+/* ================================================================
+   TYPE PRIMITIVES
+   ================================================================ */
+.eyebrow{
+  font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--green);display:flex;align-items:center;gap:12px;margin:0 0 20px
+}
+.eyebrow::after{content:"";height:1px;flex:1;background:linear-gradient(90deg,var(--green-line),transparent)}
+
+.h2{
+  font-family:var(--mono);font-weight:800;letter-spacing:-.035em;line-height:1.1;
+  font-size:clamp(28px,4.4vw,44px);margin:0 0 14px;color:var(--fg)
+}
+.lede{color:var(--fg-mid);max-width:62ch;margin:0 0 46px;font-size:clamp(15.5px,1.7vw,17.5px)}
+
+.section{padding-block:var(--pad-y);position:relative;z-index:1}
+.section + .section{border-top:1px solid var(--rule)}
+
+/* ================================================================
+   NAV
+   ================================================================ */
+.nav{position:sticky;top:0;z-index:60;background:rgba(7,10,8,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid transparent;transition:border-color .3s,background .3s}
+.nav.stuck{border-bottom-color:var(--rule);background:rgba(7,10,8,.93)}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:70px;gap:20px}
+.brand{font-family:var(--mono);font-weight:700;font-size:15px;letter-spacing:-.02em;display:flex;align-items:center;gap:9px;white-space:nowrap}
+.brand i{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px var(--green-wash);flex:none}
+.brand span{color:var(--fg-dim);font-weight:400}
+
+.nav-links{display:flex;align-items:center;gap:4px;list-style:none;margin:0;padding:0}
+.nav-links a{
+  font-family:var(--mono);font-size:13px;font-weight:500;color:var(--fg-mid);
+  padding:8px 13px;border-radius:8px;transition:color .18s,background .18s;display:block
+}
+.nav-links a:hover{color:var(--fg);background:var(--panel-2)}
+.nav-links a.on{color:var(--green);background:var(--green-wash)}
+
+.nav-cta{
+  font-family:var(--mono);font-size:13px;font-weight:700;padding:9px 16px;border-radius:9px;
+  border:1px solid var(--green-line);color:var(--green);background:var(--green-wash);
+  transition:background .18s,border-color .18s;white-space:nowrap
+}
+.nav-cta:hover{background:rgba(82,217,138,.18);border-color:var(--green)}
+
+.burger{display:none;background:none;border:1px solid var(--rule-hi);border-radius:9px;width:42px;height:42px;cursor:pointer;padding:0;place-items:center}
+.burger i{display:block;width:17px;height:1.6px;background:var(--fg);border-radius:2px;transition:transform .25s,opacity .2s;margin:3.5px auto}
+.burger[aria-expanded="true"] i:nth-child(1){transform:translateY(5.1px) rotate(45deg)}
+.burger[aria-expanded="true"] i:nth-child(2){opacity:0}
+.burger[aria-expanded="true"] i:nth-child(3){transform:translateY(-5.1px) rotate(-45deg)}
+
+@media(max-width:900px){
+  .burger{display:grid}
+  .nav-cta{display:none}
+  .nav-links{
+    position:fixed;inset:70px 0 auto;flex-direction:column;align-items:stretch;gap:0;
+    background:rgba(7,10,8,.98);backdrop-filter:blur(18px);border-bottom:1px solid var(--rule);
+    padding:10px var(--gutter) 22px;
+    transform:translateY(-14px);opacity:0;visibility:hidden;transition:.24s
+  }
+  .nav-links.open{transform:none;opacity:1;visibility:visible}
+  .nav-links a{padding:13px 4px;font-size:15px;border-bottom:1px solid var(--rule)}
+  .nav-links li:last-child a{border-bottom:0}
+}
+
+/* ================================================================
+   HERO
+   ================================================================ */
+.hero{padding-block:clamp(48px,7vw,86px) clamp(56px,8vw,96px);position:relative;z-index:1}
+.hero-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:clamp(32px,5vw,60px);align-items:center}
+
+.prompt{font-family:var(--mono);font-size:13px;color:var(--green);margin:0 0 18px;letter-spacing:.02em}
+.prompt b{color:var(--fg-dim);font-weight:400}
+.caret{display:inline-block;width:8px;height:15px;background:var(--green);vertical-align:-2px;margin-left:3px;animation:blink 1.15s steps(1) infinite}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+
+.hero h1{
+  font-family:var(--mono);font-weight:800;letter-spacing:-.05em;line-height:1.02;
+  font-size:clamp(38px,6.6vw,68px);margin:0 0 18px
+}
+.hero h1 em{font-style:normal;color:var(--green);display:block}
+
+.role{
+  font-family:var(--mono);font-size:clamp(13px,1.6vw,14.5px);color:var(--fg-mid);
+  margin:0 0 22px;padding-left:14px;border-left:2px solid var(--green-deep);line-height:1.7
+}
+.hero p.pitch{color:var(--fg-mid);max-width:52ch;margin:0 0 30px;font-size:clamp(15.5px,1.8vw,17.5px)}
+.hero p.pitch strong{color:var(--fg);font-weight:600}
+
+.status{
+  display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12.5px;font-weight:600;
+  color:var(--green);background:var(--green-wash);border:1px solid var(--green-line);
+  padding:7px 14px;border-radius:999px;margin:0 0 26px
+}
+.status i{width:7px;height:7px;border-radius:50%;background:var(--green);position:relative;flex:none}
+.status i::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--green);animation:ping 2s ease-out infinite}
+@keyframes ping{0%{transform:scale(1);opacity:.7}100%{transform:scale(3.2);opacity:0}}
+
+.btn-row{display:flex;flex-wrap:wrap;gap:12px;margin:0 0 28px}
+.btn{
+  display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:13.5px;font-weight:700;
+  padding:13px 22px;border-radius:10px;cursor:pointer;transition:transform .16s,background .18s,border-color .18s;border:1px solid transparent
+}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--green);color:#04180D}
+.btn-primary:hover{background:var(--green-soft)}
+.btn-ghost{border-color:var(--rule-hi);color:var(--fg);background:var(--panel)}
+.btn-ghost:hover{border-color:var(--green-line);color:var(--green);background:var(--panel-2)}
+
+.socials{display:flex;gap:9px;flex-wrap:wrap}
+.socials a{
+  width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--rule);
+  border-radius:10px;color:var(--fg-mid);background:var(--panel);transition:.18s
+}
+.socials a:hover{color:var(--green);border-color:var(--green-line);background:var(--panel-2);transform:translateY(-2px)}
+.socials svg{width:18px;height:18px}
+
+/* ---- hero right column ---- */
+.hero-side{display:flex;flex-direction:column;gap:18px}
+
+/* PHOTO PLACEHOLDER
+   ------------------------------------------------------------------
+   TO ADD YOUR PHOTO:
+   1. Save your picture next to this file as  profile.jpg
+   2. In the HTML below, delete the <div class="photo-empty"> block
+   3. Uncomment the <img> tag directly above it
+   ------------------------------------------------------------------ */
+.photo{
+  position:relative;border-radius:var(--r);overflow:hidden;border:1px solid var(--rule-hi);
+  background:var(--panel);
+  /* ------------------------------------------------------------------
+     PHOTO FRAME — two numbers to tune if you swap the picture:
+       aspect-ratio     4/3.35 landscape. Try 4/5 portrait or 1/1 square.
+       object-position  which part survives the crop (below):
+                        top = top of photo, 50% = middle, bottom = bottom.
+     ------------------------------------------------------------------ */
+  aspect-ratio:4/3.35;
+}
+.photo img{position:relative;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;z-index:2}
+.photo-empty{
+  position:absolute;inset:12px;border:1.5px dashed var(--rule-hi);border-radius:10px;
+  display:grid;place-content:center;justify-items:center;gap:10px;text-align:center;padding:20px
+}
+.photo-empty svg{width:34px;height:34px;color:var(--green-deep)}
+.photo-empty b{font-family:var(--mono);font-size:12.5px;color:var(--fg-mid);font-weight:600;letter-spacing:.02em}
+.photo-empty small{font-family:var(--mono);font-size:11px;color:var(--fg-dim);line-height:1.6}
+.photo-tag{
+  position:absolute;left:12px;bottom:12px;z-index:3;font-family:var(--mono);font-size:11px;font-weight:600;
+  color:var(--green);background:rgba(7,10,8,.86);border:1px solid var(--green-line);
+  padding:5px 10px;border-radius:7px;backdrop-filter:blur(6px)
+}
+
+/* ================================================================
+   TRACE — the signature element.
+   PandasTrace output form, reused as the page's structural grammar.
+   ================================================================ */
+.trace{border:1px solid var(--rule-hi);border-radius:var(--r);background:var(--panel);overflow:hidden}
+.trace-bar{
+  display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--rule);
+  background:var(--panel-2)
+}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--rule-hi);flex:none}
+.dot.g{background:var(--green-deep)}
+.trace-bar span{font-family:var(--mono);font-size:11.5px;color:var(--fg-dim);margin-left:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.trace-body{padding:16px 14px;font-family:var(--mono);font-size:12.5px;line-height:1.85;overflow-x:auto}
+.trace-cmd{color:var(--fg-dim);margin-bottom:12px;white-space:nowrap}
+.trace-cmd b{color:var(--green);font-weight:400}
+
+table.tr-tab{width:100%;border-collapse:collapse;min-width:326px}
+table.tr-tab th{
+  text-align:right;font-weight:600;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--fg-dim);padding:0 0 7px;border-bottom:1px solid var(--rule)
+}
+table.tr-tab th:first-child{text-align:left}
+table.tr-tab td{text-align:right;padding:4px 0;color:var(--fg-mid);white-space:nowrap;font-size:12.5px}
+table.tr-tab td:first-child{text-align:left;color:var(--fg);padding-right:18px}
+table.tr-tab td.d{color:var(--amber)}
+table.tr-tab td.n{color:var(--fg-dim)}
+table.tr-tab tr.flag td:first-child{color:var(--amber)}
+table.tr-tab tr{opacity:0;transform:translateX(-6px)}
+table.tr-tab tr.lit{opacity:1;transform:none;transition:opacity .3s ease,transform .3s ease}
+
+.trace-note{
+  margin-top:13px;padding-top:12px;border-top:1px solid var(--rule);
+  font-family:var(--mono);font-size:11.5px;color:var(--amber);display:flex;gap:8px;align-items:flex-start;
+  opacity:0;transition:opacity .4s
+}
+.trace-note.lit{opacity:1}
+.trace-note em{font-style:normal;color:var(--fg-dim)}
+
+@media(max-width:980px){
+  .hero-grid{grid-template-columns:1fr;gap:38px}
+  .hero-side{max-width:520px;width:100%}
+}
+
+/* ================================================================
+   FACTS — same ledger grammar, no big-number template
+   ================================================================ */
+.facts{border:1px solid var(--rule);border-radius:var(--r);background:var(--panel);overflow:hidden}
+.fact{
+  display:grid;grid-template-columns:200px 1fr auto;gap:18px;align-items:baseline;
+  padding:17px 22px;border-bottom:1px solid var(--rule)
+}
+.fact:last-child{border-bottom:0}
+.fact dt{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--green);letter-spacing:.02em}
+.fact dd{margin:0;color:var(--fg-mid);font-size:15px}
+.fact dd b{color:var(--fg);font-weight:600}
+.fact dd.val{font-family:var(--mono);font-size:12.5px;color:var(--fg-dim);white-space:nowrap}
+@media(max-width:720px){
+  .fact{grid-template-columns:1fr;gap:5px;padding:15px 17px}
+  .fact dd.val{color:var(--amber)}
+}
+
+/* ================================================================
+   ABOUT
+   ================================================================ */
+.about-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(32px,5vw,64px);align-items:start}
+.about-body p{color:var(--fg-mid);margin:0 0 18px}
+.about-body p strong{color:var(--fg);font-weight:600}
+.about-body p:last-child{margin-bottom:0}
+
+.log{list-style:none;margin:0;padding:0;position:relative}
+.log::before{content:"";position:absolute;left:5px;top:9px;bottom:9px;width:1px;background:var(--rule-hi)}
+.log li{position:relative;padding:0 0 26px 26px}
+.log li:last-child{padding-bottom:0}
+.log li::before{
+  content:"";position:absolute;left:0;top:8px;width:11px;height:11px;border-radius:50%;
+  background:var(--ink);border:2px solid var(--green-deep)
+}
+.log li.now::before{border-color:var(--green);box-shadow:0 0 0 4px var(--green-wash)}
+.log .when{display:block;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--fg-dim)}
+.log h4{margin:3px 0 4px;font-size:16px;font-weight:700;font-family:var(--mono);letter-spacing:-.02em}
+.log p{margin:0;color:var(--fg-mid);font-size:14.5px;line-height:1.65}
+@media(max-width:860px){.about-grid{grid-template-columns:1fr;gap:46px}}
+
+/* ================================================================
+   PROJECTS
+   ================================================================ */
+.path{font-family:var(--mono);font-size:11.5px;color:var(--fg-dim);margin:0 0 12px;letter-spacing:.02em}
+.path b{color:var(--green-deep);font-weight:400}
+
+.feat{
+  border:1px solid var(--rule-hi);border-radius:var(--r);background:var(--panel);
+  padding:clamp(24px,3.4vw,38px);margin-bottom:22px;position:relative;overflow:hidden
+}
+.feat::before{content:"";position:absolute;inset:0 0 auto;height:1px;background:linear-gradient(90deg,transparent,var(--green),transparent);opacity:.55}
+.feat-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(26px,4vw,48px);align-items:start}
+.feat h3{font-family:var(--mono);font-size:clamp(22px,3vw,29px);font-weight:800;letter-spacing:-.035em;margin:0 0 6px}
+.feat .sub{font-family:var(--mono);font-size:12.5px;color:var(--green);margin:0 0 16px}
+.feat p{color:var(--fg-mid);margin:0 0 16px;font-size:15.5px}
+.feat p strong{color:var(--fg);font-weight:600}
+
+.pill{
+  position:absolute;top:clamp(24px,3.4vw,38px);right:clamp(24px,3.4vw,38px);
+  font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--green);background:var(--green-wash);border:1px solid var(--green-line);padding:5px 11px;border-radius:999px
+}
+@media(max-width:620px){.pill{position:static;display:inline-block;margin-bottom:14px}}
+
+.install{display:flex;align-items:center;gap:10px;background:var(--ink);border:1px solid var(--rule-hi);border-radius:10px;padding:12px 14px;margin:0 0 18px;font-family:var(--mono);font-size:13px;flex-wrap:wrap}
+.install code{color:var(--fg);flex:1;min-width:180px;white-space:nowrap;overflow-x:auto}
+.install code b{color:var(--green);font-weight:400}
+.copy{
+  background:var(--panel-2);border:1px solid var(--rule-hi);border-radius:7px;padding:6px 12px;
+  font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--fg-mid);cursor:pointer;transition:.18s;white-space:nowrap
+}
+.copy:hover{color:var(--green);border-color:var(--green-line)}
+.copy.done{color:var(--green);border-color:var(--green);background:var(--green-wash)}
+
+.tags{display:flex;flex-wrap:wrap;gap:7px;list-style:none;margin:0 0 20px;padding:0}
+.tags li{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--fg-mid);background:var(--panel-2);border:1px solid var(--rule);padding:4px 10px;border-radius:6px}
+
+.links{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.link{
+  font-family:var(--mono);font-size:13px;font-weight:600;color:var(--green);
+  display:inline-flex;align-items:center;gap:7px;border-bottom:1px solid transparent;transition:.18s;padding-bottom:2px
+}
+.link:hover{border-bottom-color:var(--green)}
+.link svg{width:14px;height:14px;flex:none}
+.link.muted{color:var(--fg-mid)}
+.link.muted:hover{color:var(--fg);border-bottom-color:var(--rule-hi)}
+
+/* grid */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.card{
+  border:1px solid var(--rule);border-radius:var(--r);background:var(--panel);
+  padding:24px;display:flex;flex-direction:column;transition:border-color .2s,transform .2s,background .2s
+}
+.card:hover{border-color:var(--green-line);transform:translateY(-3px);background:var(--panel-2)}
+.card h3{font-family:var(--mono);font-size:17.5px;font-weight:700;letter-spacing:-.025em;margin:0 0 8px}
+.card p{color:var(--fg-mid);font-size:14.5px;margin:0 0 18px;flex:1;line-height:1.68}
+.card .tags{margin-bottom:18px}
+.card .links{margin-top:auto}
+
+/* ================================================================
+   SKILLS
+   ================================================================ */
+.stack{display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:var(--r);overflow:hidden}
+.stack section{background:var(--panel);padding:26px 24px}
+.stack h3{
+  font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--green);margin:0 0 16px
+}
+.stack ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+.stack li{font-family:var(--mono);font-size:13.5px;color:var(--fg-mid);display:flex;align-items:center;gap:10px}
+.stack li::before{content:"";width:5px;height:5px;background:var(--green-deep);flex:none;border-radius:1px;transform:rotate(45deg)}
+.stack section.learning li::before{background:var(--amber)}
+
+/* ================================================================
+   SERVICES
+   ================================================================ */
+.svc{display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:18px;margin-bottom:26px}
+.svc article{border:1px solid var(--rule);border-radius:var(--r);background:var(--panel);padding:28px 26px;transition:border-color .2s,background .2s}
+.svc article:hover{border-color:var(--green-line);background:var(--panel-2)}
+.svc .ico{width:40px;height:40px;border-radius:10px;background:var(--green-wash);border:1px solid var(--green-line);display:grid;place-items:center;color:var(--green);margin-bottom:18px}
+.svc .ico svg{width:19px;height:19px}
+.svc h3{font-family:var(--mono);font-size:17px;font-weight:700;letter-spacing:-.025em;margin:0 0 10px}
+.svc p{color:var(--fg-mid);font-size:14.5px;margin:0 0 16px;line-height:1.68}
+.svc ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.svc li{font-size:13.5px;color:var(--fg-mid);display:flex;gap:10px;align-items:flex-start;line-height:1.55}
+.svc li::before{content:"→";color:var(--green-deep);font-family:var(--mono);flex:none}
+
+.svc-foot{
+  border:1px dashed var(--rule-hi);border-radius:var(--r);padding:22px 26px;
+  display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between
+}
+.svc-foot p{margin:0;color:var(--fg-mid);font-size:14.5px;max-width:56ch}
+.svc-foot b{color:var(--fg)}
+
+/* ================================================================
+   TESTIMONIALS (styles kept live so the commented block works instantly)
+   ================================================================ */
+.quotes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px}
+.quote{border:1px solid var(--rule);border-radius:var(--r);background:var(--panel);padding:28px 26px;display:flex;flex-direction:column}
+.quote .mark{font-family:var(--mono);font-size:30px;color:var(--green-deep);line-height:1;margin-bottom:10px}
+.quote blockquote{margin:0 0 20px;color:var(--fg-mid);font-size:15px;line-height:1.72;flex:1}
+.quote figcaption{display:flex;align-items:center;gap:12px;border-top:1px solid var(--rule);padding-top:16px}
+.quote .av{width:38px;height:38px;border-radius:50%;background:var(--panel-3);border:1px solid var(--rule-hi);display:grid;place-items:center;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--green);flex:none}
+.quote .who{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--fg);display:block;line-height:1.4}
+.quote .where{font-size:12.5px;color:var(--fg-dim);line-height:1.4}
+
+/* ================================================================
+   CONTACT
+   ================================================================ */
+.contact-grid{display:grid;grid-template-columns:.92fr 1.08fr;gap:clamp(32px,5vw,58px);align-items:start}
+.cinfo p{color:var(--fg-mid);margin:0 0 28px;max-width:46ch}
+.cmeta{list-style:none;margin:0 0 28px;padding:0;display:flex;flex-direction:column;gap:2px}
+.cmeta li{display:grid;grid-template-columns:118px 1fr;gap:14px;padding:11px 0;border-bottom:1px solid var(--rule);align-items:baseline}
+.cmeta li:last-child{border-bottom:0}
+.cmeta .k{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--fg-dim)}
+.cmeta .v{font-family:var(--mono);font-size:13.5px;color:var(--fg);word-break:break-word}
+.cmeta a.v:hover{color:var(--green)}
+@media(max-width:520px){.cmeta li{grid-template-columns:1fr;gap:3px}}
+
+.form{border:1px solid var(--rule-hi);border-radius:var(--r);background:var(--panel);padding:clamp(24px,3.4vw,34px)}
+.field{margin-bottom:18px}
+.field label{display:block;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--fg-dim);margin-bottom:8px}
+.field input,.field textarea,.field select{
+  width:100%;background:var(--ink);border:1px solid var(--rule-hi);border-radius:9px;
+  padding:12px 14px;font-family:var(--sans);font-size:15px;color:var(--fg);transition:border-color .18s,background .18s
+}
+.field select{font-family:var(--mono);font-size:13.5px;cursor:pointer;appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--fg-dim) 50%),linear-gradient(135deg,var(--fg-dim) 50%,transparent 50%);
+  background-position:calc(100% - 19px) 50%,calc(100% - 13px) 50%;background-size:6px 6px;background-repeat:no-repeat;padding-right:40px}
+.field select option{background:var(--panel-2);color:var(--fg)}
+.field textarea{resize:vertical;min-height:128px;line-height:1.65}
+.field input::placeholder,.field textarea::placeholder{color:var(--fg-dim)}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--green);background-color:var(--panel-2);outline:none}
+.field.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field.two > div{display:flex;flex-direction:column}
+@media(max-width:560px){.field.two{grid-template-columns:1fr}}
+
+.form .btn-primary{width:100%;justify-content:center;padding:15px}
+.form-note{font-family:var(--mono);font-size:11.5px;color:var(--fg-dim);margin:14px 0 0;text-align:center;line-height:1.6}
+.form-note a{color:var(--green)}
+
+.sent{
+  margin-top:16px;padding:13px 16px;border-radius:9px;font-family:var(--mono);font-size:12.5px;
+  border:1px solid var(--green-line);background:var(--green-wash);color:var(--green);display:none;line-height:1.65
+}
+.sent.show{display:block}
+.sent.err{border-color:rgba(224,164,88,.42);background:var(--amber-wash);color:var(--amber)}
+.btn[aria-busy="true"]{opacity:.6;pointer-events:none}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+/* click-to-copy email + confirmation toast */
+.vmail{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.vmail a{font-family:var(--mono);font-size:13.5px;color:var(--fg);word-break:break-all;border-bottom:1px solid transparent;transition:.18s}
+.vmail a:hover{color:var(--green);border-bottom-color:var(--green-line)}
+.copy.mini{padding:3px 9px;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
+a[data-copy]{cursor:copy}
+.toast{
+  position:fixed;left:50%;bottom:26px;z-index:200;transform:translate(-50%,14px);
+  font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--green);
+  background:rgba(13,19,16,.97);border:1px solid var(--green-line);border-radius:10px;
+  padding:11px 18px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;
+  box-shadow:0 10px 34px rgba(0,0,0,.5);max-width:calc(100vw - 32px);text-align:center
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.err{color:var(--amber);border-color:rgba(224,164,88,.42)}
+
+/* ================================================================
+   FOOTER
+   ================================================================ */
+.foot{border-top:1px solid var(--rule);padding-block:34px;position:relative;z-index:1}
+.foot-in{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between}
+.foot p{margin:0;font-family:var(--mono);font-size:12px;color:var(--fg-dim)}
+.foot nav{display:flex;gap:20px;flex-wrap:wrap}
+.foot nav a{font-family:var(--mono);font-size:12px;color:var(--fg-dim);transition:color .18s}
+.foot nav a:hover{color:var(--green)}
+
+/* ================================================================
+   REVEAL
+   ================================================================ */
+.rv{opacity:0;transform:translateY(16px)}
+.rv.in{opacity:1;transform:none;transition:opacity .55s cubic-bezier(.2,.7,.3,1),transform .55s cubic-bezier(.2,.7,.3,1)}
+
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  .rv{opacity:1;transform:none}
+  table.tr-tab tr{opacity:1;transform:none}
+  .trace-note{opacity:1}
+}
+</style>
+</head>
+
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- ================= NAV ================= -->
+<header class="nav" id="nav">
+  <div class="shell nav-in">
+    <a class="brand" href="#top"><i></i>hammad<span>.dev</span></a>
+
+    <ul class="nav-links" id="menu">
+      <li><a href="#about">About</a></li>
+      <li><a href="#work">Work</a></li>
+      <li><a href="#stack">Stack</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+
+    <a class="nav-cta" href="#contact">Hire me</a>
+
+    <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+      <i></i><i></i><i></i>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ================= HERO ================= -->
+<section class="hero" id="top">
+  <div class="shell hero-grid">
+
+    <div>
+      <p class="prompt">$ <b>whoami</b><span class="caret"></span></p>
+
+      <h1>Muhammad Hammad<em>Ateeq</em></h1>
+
+      <p class="role">Software Engineering student · Bahria University, Islamabad<br>Python · Pandas · Streamlit · SQL</p>
+
+      <p class="pitch">I build Python tools that clean messy data, show exactly what changed, and report it without anyone having to run a script. <strong>One package on PyPI, four dashboards running live.</strong></p>
+
+      <p class="status"><i></i>Available for freelance work</p>
+
+      <div class="btn-row">
+        <a class="btn btn-primary" href="#work">See the work</a>
+
+        <!-- RESUME
+             Save your CV next to this file as  resume.pdf
+             (keep the filename, or change it in the href below) -->
+        <a class="btn btn-ghost" href="resume.pdf" download>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download CV
+        </a>
+      </div>
+
+      <div class="socials">
+        <a href="https://github.com/Hammad4122" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.73.5.9 5.34.9 11.6c0 4.9 3.18 9.06 7.6 10.53.55.1.75-.24.75-.53v-2.07c-3.09.67-3.74-1.49-3.74-1.49-.51-1.29-1.24-1.63-1.24-1.63-1.01-.69.08-.68.08-.68 1.12.08 1.7 1.15 1.7 1.15 1 1.71 2.61 1.22 3.25.93.1-.72.39-1.22.7-1.5-2.47-.28-5.06-1.23-5.06-5.49 0-1.21.43-2.2 1.14-2.98-.11-.28-.5-1.41.11-2.94 0 0 .94-.3 3.07 1.14a10.6 10.6 0 0 1 5.59 0c2.13-1.44 3.06-1.14 3.06-1.14.61 1.53.23 2.66.11 2.94.71.78 1.14 1.77 1.14 2.98 0 4.27-2.6 5.21-5.07 5.48.4.35.76 1.03.76 2.08v3.08c0 .3.2.64.76.53 4.41-1.47 7.59-5.63 7.59-10.53C23.1 5.34 18.27.5 12 .5z"/></svg>
+        </a>
+        <a href="https://www.linkedin.com/in/muhammad-hammad-ateeq-648ba5371/" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.44-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.47-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z"/></svg>
+        </a>
+        <a href="https://www.upwork.com/freelancers/~0116b8b03ef8aa93de" target="_blank" rel="noopener" aria-label="Upwork" title="Upwork profile">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.561 13.158c-1.102 0-2.135-.467-3.074-1.227l.228-1.076.008-.042c.207-1.143.849-3.06 2.839-3.06 1.492 0 2.703 1.212 2.703 2.703-.001 1.489-1.212 2.702-2.704 2.702zm0-8.14c-2.539 0-4.51 1.649-5.31 4.366-1.22-1.834-2.148-4.036-2.687-5.892H7.828v7.112c-.002 1.406-1.141 2.546-2.547 2.548-1.405-.002-2.543-1.143-2.545-2.548V3.492H0v7.112c0 2.914 2.37 5.303 5.281 5.303 2.913 0 5.283-2.389 5.283-5.303v-1.19c.529 1.107 1.182 2.229 1.974 3.221l-1.673 7.873h2.797l1.213-5.71c1.063.679 2.285 1.109 3.686 1.109 3 0 5.439-2.452 5.439-5.45 0-3-2.439-5.439-5.439-5.439z"/></svg>
+        </a>
+        <a href="mailto:muhammadhammadateeq@gmail.com" data-copy="muhammadhammadateeq@gmail.com" data-copied="Email address copied" aria-label="Copy my email address" title="Click to copy my email address">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- ---- right column ---- -->
+    <div class="hero-side">
+
+      <div class="photo">
+        <!-- ============================================================
+             YOUR PHOTO
+             Save it beside this file as  profile.jpg  and it appears
+             automatically. Nothing here needs editing.
+             Until then, the dashed placeholder below shows instead.
+             ============================================================ -->
+        <img src="profile.jpg" alt="Muhammad Hammad Ateeq" onerror="this.remove()">
+
+        <div class="photo-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-4.35-4.35a2 2 0 0 0-2.83 0L4 20"/></svg>
+          <b>profile.jpg</b>
+          <small>Save your photo beside index.html,<br>then follow the two comments here.</small>
+        </div>
+
+        <span class="photo-tag">Islamabad, PK</span>
+      </div>
+
+      <!-- SIGNATURE ELEMENT: real PandasTrace output -->
+      <div class="trace" id="trace">
+        <div class="trace-bar">
+          <i class="dot g"></i><i class="dot"></i><i class="dot"></i>
+          <span>~/projects/pandastrace — demo</span>
+        </div>
+        <div class="trace-body">
+          <p class="trace-cmd">$ <b>python clean_orders.py</b></p>
+          <table class="tr-tab">
+            <thead>
+              <tr class="lit"><th scope="col">Step</th><th scope="col">Rows</th><th scope="col">Nulls</th><th scope="col">Δ</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>read_csv()</td><td>12,480</td><td>312</td><td class="n">—</td></tr>
+              <tr><td>dropna()</td><td>12,168</td><td>0</td><td class="d">−312</td></tr>
+              <tr><td>drop_duplicates()</td><td>11,904</td><td>0</td><td class="d">−264</td></tr>
+              <tr class="flag"><td>query("qty &gt; 0")</td><td>3,201</td><td>0</td><td class="d">−8,703</td></tr>
+            </tbody>
+          </table>
+          <p class="trace-note" id="traceNote"><span>⚠</span><span>73% of rows dropped at one step. <em>The kind of thing you find three weeks later.</em></span></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================= FACTS ================= -->
+<section class="section" style="padding-top:0" aria-label="Quick facts">
+  <div class="shell">
+    <dl class="facts rv">
+      <div class="fact">
+        <dt>published</dt>
+        <dd><b>PandasTrace</b> on PyPI — installable, versioned, tested</dd>
+        <dd class="val">v0.3.2 · 23 tests</dd>
+      </div>
+      <div class="fact">
+        <dt>deployed</dt>
+        <dd>Four <b>Streamlit</b> data apps running live, not screenshots</dd>
+        <dd class="val">4 apps</dd>
+      </div>
+      <div class="fact">
+        <dt>studying</dt>
+        <dd>BS Software Engineering, <b>Bahria University Islamabad</b></dd>
+        <dd class="val">3.57 CGPA</dd>
+      </div>
+      <div class="fact">
+        <dt>freelancing</dt>
+        <dd><b>Rising Talent</b> on Upwork — data cleaning, dashboards, automation</dd>
+        <dd class="val">open to work</dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<!-- ================= ABOUT ================= -->
+<section class="section" id="about">
+  <div class="shell">
+    <div class="about-grid">
+
+      <div class="rv">
+        <p class="eyebrow">About</p>
+        <h2 class="h2">I ship things people can install and run.</h2>
+        <div class="about-body">
+          <p>I'm a second-year Software Engineering student in Islamabad. Most of my work sits in one place: <strong>the gap between raw data and a decision someone has to make.</strong> Cleaning it, checking it didn't quietly break, putting it somewhere readable, and automating the whole run.</p>
+          <p>That's how PandasTrace happened. I lost rows inside a long Pandas chain and had no idea which step ate them, so I built a wrapper that logs row counts, nulls, duplicates, and memory at every step — then published it so other people wouldn't have to repeat the debugging.</p>
+          <p>Alongside Python I work in <strong>C++17 with Qt6 and SQL Server</strong> on desktop software. Different tools, same instinct: make the system tell you what it's doing.</p>
+        </div>
+      </div>
+
+      <div class="rv">
+        <p class="eyebrow">Track</p>
+        <ul class="log">
+          <li class="now">
+            <span class="when">2026 — now</span>
+            <h4>Freelance developer</h4>
+            <p>Building data cleaning scripts, Excel and Google Sheets systems, and reporting tools for clients on Upwork. Rising Talent.</p>
+          </li>
+          <li>
+            <span class="when">Feb 2026</span>
+            <h4>AI-Powered Data Analyst — Intern</h4>
+            <p>Analysis and reporting work across real datasets. Recognized as Star Performer at the close of the program.</p>
+          </li>
+          <li>
+            <span class="when">2025 — 2026</span>
+            <h4>Open source &amp; personal tooling</h4>
+            <p>Published PandasTrace to PyPI. Shipped four Streamlit apps and a Qt6 desktop banking system with a SQL Server backend.</p>
+          </li>
+          <li>
+            <span class="when">2025 — present</span>
+            <h4>BS Software Engineering — Bahria University</h4>
+            <p>Islamabad campus. 3.57 CGPA. Coursework in OOP, data structures, and database systems.</p>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================= WORK ================= -->
+<section class="section" id="work">
+  <div class="shell">
+    <div class="rv">
+      <p class="eyebrow">Selected work</p>
+      <h2 class="h2">Built, shipped, and still running.</h2>
+      <p class="lede">Every project below is either installable, deployed, or both. Links go to live apps and source, not slide decks.</p>
+    </div>
+
+    <!-- FEATURED -->
+    <article class="feat rv">
+      <span class="pill">Published package</span>
+      <div class="feat-grid">
+        <div>
+          <p class="path">~/<b>pandastrace</b></p>
+          <h3>PandasTrace</h3>
+          <p class="sub">Python · pip installable · 23 passing tests</p>
+          <p>Long Pandas chains lose rows silently. <strong>PandasTrace wraps your DataFrame and records what happened at every step</strong> — rows in, rows out, nulls, duplicates, memory — then exports the whole trace to JSON or CSV so you can hand it to someone else as evidence.</p>
+
+          <div class="install">
+            <code>$ <b>pip install pandastrace</b></code>
+            <button class="copy" id="copyBtn" type="button">Copy</button>
+          </div>
+
+          <ul class="tags">
+            <li>Python</li><li>Pandas</li><li>pytest</li><li>PyPI packaging</li><li>CLI</li>
+          </ul>
+
+          <div class="links">
+            <a class="link" href="https://pypi.org/project/pandastrace/" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
+              View on PyPI
+            </a>
+            <a class="link muted" href="https://github.com/Hammad4122/PandasTrace" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.73.5.9 5.34.9 11.6c0 4.9 3.18 9.06 7.6 10.53.55.1.75-.24.75-.53v-2.07c-3.09.67-3.74-1.49-3.74-1.49-.51-1.29-1.24-1.63-1.24-1.63-1.01-.69.08-.68.08-.68 1.12.08 1.7 1.15 1.7 1.15 1 1.71 2.61 1.22 3.25.93.1-.72.39-1.22.7-1.5-2.47-.28-5.06-1.23-5.06-5.49 0-1.21.43-2.2 1.14-2.98-.11-.28-.5-1.41.11-2.94 0 0 .94-.3 3.07 1.14a10.6 10.6 0 0 1 5.59 0c2.13-1.44 3.06-1.14 3.06-1.14.61 1.53.23 2.66.11 2.94.71.78 1.14 1.77 1.14 2.98 0 4.27-2.6 5.21-5.07 5.48.4.35.76 1.03.76 2.08v3.08c0 .3.2.64.76.53 4.41-1.47 7.59-5.63 7.59-10.53C23.1 5.34 18.27.5 12 .5z"/></svg>
+              Source
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <div class="trace">
+            <div class="trace-bar">
+              <i class="dot g"></i><i class="dot"></i><i class="dot"></i>
+              <span>usage.py</span>
+            </div>
+            <div class="trace-body">
+              <p class="trace-cmd" style="margin:0;white-space:pre-wrap;line-height:1.9"><span style="color:var(--green)">from</span> pandastrace <span style="color:var(--green)">import</span> trace
+
+df = trace(pd.read_csv(<span style="color:var(--amber)">"orders.csv"</span>))
+df = df.dropna().drop_duplicates()
+df = df.query(<span style="color:var(--amber)">"qty &gt; 0"</span>)
+
+df.report()          <span style="color:var(--fg-dim)"># prints the table</span>
+df.export(<span style="color:var(--amber)">"trace.json"</span>) <span style="color:var(--fg-dim)"># hand it over</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- GRID -->
+    <div class="cards">
+
+      <article class="card rv">
+        <p class="path">~/<b>apexvault</b></p>
+        <h3>ApexVault Banking System</h3>
+        <p>A desktop banking application with role-separated admin and customer dashboards, TPIN-protected transactions, and a normalized SQL Server backend reached over ODBC. Schema, queries, and interface built end to end.</p>
+        <ul class="tags"><li>C++17</li><li>Qt6</li><li>SQL Server</li><li>ODBC</li><li>OOP</li></ul>
+        <div class="links">
+          <a class="link" href="https://github.com/Hammad4122/Banking-Management-System_QT_Application" target="_blank" rel="noopener">Source →</a>
+        </div>
+      </article>
+
+      <article class="card rv">
+        <p class="path">~/<b>universal-data-cleaner</b></p>
+        <h3>Universal Data Cleaner</h3>
+        <p>Upload any CSV and get it back cleaned — missing values handled, duplicates removed, types inferred — plus an instant exploratory chart set. The one project here that is a tool rather than a report.</p>
+        <ul class="tags"><li>Python</li><li>Pandas</li><li>Streamlit</li><li>Plotly</li></ul>
+        <div class="links">
+          <a class="link" href="https://hammad-data-cleaner-and-visualization-dashboard.streamlit.app/" target="_blank" rel="noopener">Open live app →</a>
+          <a class="link muted" href="https://github.com/Hammad4122/Data-Cleaner-and-Visualization-Streamlit-Dashboard" target="_blank" rel="noopener">Source</a>
+        </div>
+      </article>
+
+      <article class="card rv">
+        <p class="path">~/<b>ecommerce-sales-dashboard</b></p>
+        <h3>E-commerce Sales Dashboard</h3>
+        <p>Revenue, order, and customer trend analysis with filterable date ranges and category breakdowns. Built to answer the questions a store owner actually asks at month end.</p>
+        <ul class="tags"><li>Pandas</li><li>Streamlit</li><li>Plotly</li></ul>
+        <div class="links">
+          <a class="link" href="https://hammad-e-commerce-sales-dashboard.streamlit.app/" target="_blank" rel="noopener">Open live app →</a>
+          <a class="link muted" href="https://github.com/Hammad4122/E-commerce-Sales-Dashboard" target="_blank" rel="noopener">Source</a>
+        </div>
+      </article>
+
+      <article class="card rv">
+        <p class="path">~/<b>airport-operations-dashboard</b></p>
+        <h3>Airport Operations Dashboard</h3>
+        <p>Time-series analysis of passenger flow and flight statistics, surfacing peak-load windows and delay patterns across the operating calendar.</p>
+        <ul class="tags"><li>Pandas</li><li>Time series</li><li>Streamlit</li></ul>
+        <div class="links">
+          <a class="link" href="https://airportopsdashboard.streamlit.app/" target="_blank" rel="noopener">Open live app →</a>
+          <a class="link muted" href="https://github.com/Hammad4122/airport-operations-dashboard" target="_blank" rel="noopener">Source</a>
+        </div>
+      </article>
+
+      <article class="card rv">
+        <p class="path">~/<b>healthcare-dashboard</b></p>
+        <h3>Healthcare Data Dashboard</h3>
+        <p>Patient demographics and clinical metrics rendered as a filterable overview, built around the reporting cuts a care team needs rather than every column in the file.</p>
+        <ul class="tags"><li>Pandas</li><li>Seaborn</li><li>Streamlit</li></ul>
+        <div class="links">
+          <a class="link" href="https://hamamad-health-care-dashboard.streamlit.app/" target="_blank" rel="noopener">Open live app →</a>
+          <a class="link muted" href="https://github.com/Hammad4122/Health-Care-Dashboard" target="_blank" rel="noopener">Source</a>
+        </div>
+      </article>
+
+      <!-- ==============================================================
+           SHOPIFY PROJECT — ready to go live.
+           Uncomment this card once the repo is public, and paste the
+           repo URL into the href below.
+           ==============================================================
+      <article class="card rv">
+        <p class="path">~/<b>shopify-sales-report</b></p>
+        <h3>Shopify Sales Report Generator</h3>
+        <p>Pulls orders from the Shopify Admin API, computes revenue and product-level metrics, renders a formatted report, and emails it on a schedule. Self-hosted, single-tenant, one command to run.</p>
+        <ul class="tags"><li>Python</li><li>REST APIs</li><li>Pandas</li><li>SMTP</li><li>Automation</li></ul>
+        <div class="links">
+          <a class="link" href="PASTE_REPO_URL_HERE" target="_blank" rel="noopener">Source →</a>
+        </div>
+      </article>
+      -->
+
+    </div>
+  </div>
+</section>
+
+<!-- ================= STACK ================= -->
+<section class="section" id="stack">
+  <div class="shell">
+    <div class="rv">
+      <p class="eyebrow">Stack</p>
+      <h2 class="h2">What I actually use.</h2>
+      <p class="lede">Listed only where a project on this page backs it up. The last column is what I'm learning right now, kept separate on purpose.</p>
+    </div>
+
+    <div class="stack rv">
+      <section>
+        <h3>Languages</h3>
+        <ul><li>Python</li><li>C++17</li><li>SQL</li></ul>
+      </section>
+      <section>
+        <h3>Data</h3>
+        <ul><li>Pandas</li><li>NumPy</li><li>Plotly</li><li>Matplotlib</li><li>Seaborn</li></ul>
+      </section>
+      <section>
+        <h3>Build &amp; ship</h3>
+        <ul><li>Streamlit</li><li>Qt6</li><li>pytest</li><li>PyPI packaging</li><li>Git</li></ul>
+      </section>
+      <section>
+        <h3>Data stores</h3>
+        <ul><li>Microsoft SQL Server</li><li>SQLite</li><li>Excel / Google Sheets</li></ul>
+      </section>
+      <section class="learning">
+        <h3>Learning now</h3>
+        <ul><li>REST APIs (requests)</li><li>Shopify Admin API</li><li>Machine learning</li></ul>
+      </section>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SERVICES ================= -->
+<section class="section" id="services">
+  <div class="shell">
+    <div class="rv">
+      <p class="eyebrow">For clients</p>
+      <h2 class="h2">What I can take off your plate.</h2>
+      <p class="lede">Small, well-defined projects with a working deliverable at the end. Everything below is something I've already built and shipped at least once.</p>
+    </div>
+
+    <div class="svc">
+      <article class="rv">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6c0-1.7 4-3 9-3s9 1.3 9 3-4 3-9 3-9-1.3-9-3Z"/><path d="M3 6v12c0 1.7 4 3 9 3s9-1.3 9-3V6"/><path d="M3 12c0 1.7 4 3 9 3s9-1.3 9-3"/></svg></div>
+        <h3>Data cleaning</h3>
+        <p>Messy spreadsheets and exports turned into something you can trust and analyse.</p>
+        <ul>
+          <li>Deduplication and null handling</li>
+          <li>Type and format normalization</li>
+          <li>A written report of what changed</li>
+          <li>Reusable script, not a one-off</li>
+        </ul>
+      </article>
+
+      <article class="rv">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><rect x="7" y="12" width="3" height="5" rx="1"/><rect x="13" y="8" width="3" height="9" rx="1"/><path d="M19 6v11"/></svg></div>
+        <h3>Dashboards &amp; data apps</h3>
+        <p>An interactive app your team opens in a browser instead of emailing files around.</p>
+        <ul>
+          <li>Streamlit apps from your own data</li>
+          <li>Filters, date ranges, breakdowns</li>
+          <li>Deployed with a shareable link</li>
+          <li>Handover notes included</li>
+        </ul>
+      </article>
+
+      <article class="rv">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v3"/><path d="M12 19v3"/><path d="m4.9 4.9 2.1 2.1"/><path d="m17 17 2.1 2.1"/><path d="M2 12h3"/><path d="M19 12h3"/><path d="m4.9 19.1 2.1-2.1"/><path d="m17 7 2.1-2.1"/><circle cx="12" cy="12" r="3.5"/></svg></div>
+        <h3>Reporting automation</h3>
+        <p>A report that builds and sends itself on a schedule, so nobody remembers to run it.</p>
+        <ul>
+          <li>Pulls from APIs, sheets, or databases</li>
+          <li>Metrics computed the same way each time</li>
+          <li>Emailed or written to a folder</li>
+          <li>Fails loudly, not silently</li>
+        </ul>
+      </article>
+    </div>
+
+    <div class="svc-foot rv">
+      <p><b>Not sure which one fits?</b> Send a couple of lines about the data and what you need out of it. I'll tell you whether it's a job for me, and roughly what it takes.</p>
+      <a class="btn btn-primary" href="#contact">Start a conversation</a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================================================================
+     TESTIMONIALS — styled and ready. To publish:
+       1. Delete the opening comment marker on the line below
+       2. Delete the closing marker after </section>
+       3. Replace the placeholder text, names, and initials
+     Duplicate a <figure class="quote"> block for each extra review.
+     ==================================================================
+
+<section class="section" id="reviews">
+  <div class="shell">
+    <div class="rv">
+      <p class="eyebrow">Reviews</p>
+      <h2 class="h2">What clients say.</h2>
+      <p class="lede">Verified feedback from completed Upwork contracts.</p>
+    </div>
+
+    <div class="quotes">
+      <figure class="quote rv">
+        <div class="mark">"</div>
+        <blockquote>Paste the client's review text here, exactly as they wrote it.</blockquote>
+        <figcaption>
+          <span class="av">SN</span>
+          <span>
+            <span class="who">Client name</span>
+            <span class="where">Company · Upwork</span>
+          </span>
+        </figcaption>
+      </figure>
+
+      <figure class="quote rv">
+        <div class="mark">"</div>
+        <blockquote>Second review goes here.</blockquote>
+        <figcaption>
+          <span class="av">AB</span>
+          <span>
+            <span class="who">Client name</span>
+            <span class="where">Company · Upwork</span>
+          </span>
+        </figcaption>
+      </figure>
+
+      <figure class="quote rv">
+        <div class="mark">"</div>
+        <blockquote>Third review goes here.</blockquote>
+        <figcaption>
+          <span class="av">MK</span>
+          <span>
+            <span class="who">Client name</span>
+            <span class="where">Company · Upwork</span>
+          </span>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+     ================= end testimonials ================= -->
+
+<!-- ================= CONTACT ================= -->
+<section class="section" id="contact">
+  <div class="shell">
+    <div class="contact-grid">
+
+      <div class="cinfo rv">
+        <p class="eyebrow">Contact</p>
+        <h2 class="h2">Tell me what you're working with.</h2>
+        <p>Recruiters and clients both welcome. If you have a dataset, a broken spreadsheet, or a report someone keeps building by hand — that's the conversation I want.</p>
+
+        <ul class="cmeta">
+          <li><span class="k">Email</span><span class="v vmail"><a href="mailto:muhammadhammadateeq@gmail.com" data-copy="muhammadhammadateeq@gmail.com" data-copied="Email address copied">muhammadhammadateeq@gmail.com</a><button type="button" class="copy mini" data-copy="muhammadhammadateeq@gmail.com" data-copied="Email address copied">Copy</button></span></li>
+          <li><span class="k">Based in</span><span class="v">Islamabad, Pakistan · UTC+5</span></li>
+          <li><span class="k">Reply time</span><span class="v">Within 24 hours</span></li>
+          <li><span class="k">Upwork</span><a class="v" href="https://www.upwork.com/freelancers/~0116b8b03ef8aa93de" target="_blank" rel="noopener">Rising Talent &mdash; view profile</a></li>
+          <li><span class="k">Availability</span><span class="v">Freelance &amp; internships</span></li>
+        </ul>
+
+        <div class="socials">
+          <a href="https://github.com/Hammad4122" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.73.5.9 5.34.9 11.6c0 4.9 3.18 9.06 7.6 10.53.55.1.75-.24.75-.53v-2.07c-3.09.67-3.74-1.49-3.74-1.49-.51-1.29-1.24-1.63-1.24-1.63-1.01-.69.08-.68.08-.68 1.12.08 1.7 1.15 1.7 1.15 1 1.71 2.61 1.22 3.25.93.1-.72.39-1.22.7-1.5-2.47-.28-5.06-1.23-5.06-5.49 0-1.21.43-2.2 1.14-2.98-.11-.28-.5-1.41.11-2.94 0 0 .94-.3 3.07 1.14a10.6 10.6 0 0 1 5.59 0c2.13-1.44 3.06-1.14 3.06-1.14.61 1.53.23 2.66.11 2.94.71.78 1.14 1.77 1.14 2.98 0 4.27-2.6 5.21-5.07 5.48.4.35.76 1.03.76 2.08v3.08c0 .3.2.64.76.53 4.41-1.47 7.59-5.63 7.59-10.53C23.1 5.34 18.27.5 12 .5z"/></svg>
+          </a>
+          <a href="https://www.linkedin.com/in/muhammad-hammad-ateeq-648ba5371/" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.44-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.47-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z"/></svg>
+          </a>
+          <a href="https://www.upwork.com/freelancers/~0116b8b03ef8aa93de" target="_blank" rel="noopener" aria-label="Upwork" title="Upwork profile">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.561 13.158c-1.102 0-2.135-.467-3.074-1.227l.228-1.076.008-.042c.207-1.143.849-3.06 2.839-3.06 1.492 0 2.703 1.212 2.703 2.703-.001 1.489-1.212 2.702-2.704 2.702zm0-8.14c-2.539 0-4.51 1.649-5.31 4.366-1.22-1.834-2.148-4.036-2.687-5.892H7.828v7.112c-.002 1.406-1.141 2.546-2.547 2.548-1.405-.002-2.543-1.143-2.545-2.548V3.492H0v7.112c0 2.914 2.37 5.303 5.281 5.303 2.913 0 5.283-2.389 5.283-5.303v-1.19c.529 1.107 1.182 2.229 1.974 3.221l-1.673 7.873h2.797l1.213-5.71c1.063.679 2.285 1.109 3.686 1.109 3 0 5.439-2.452 5.439-5.45 0-3-2.439-5.439-5.439-5.439z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ==========================================================
+           FORM — live. Messages are delivered by Formspree to the
+           inbox registered on form xyeggwgw.
+
+           It submits in the background, so the visitor stays on this
+           page and sees the confirmation below the button. If a
+           visitor has JavaScript disabled, the plain POST still works
+           and they land on Formspree's own thank-you page.
+
+           TO CHANGE THE DESTINATION: swap the id in the action URL.
+           FIRST SUBMISSION: Formspree emails you a one-time link to
+           confirm the address before delivery starts.
+           ========================================================== -->
+      <form class="form rv" id="cform" action="https://formspree.io/f/xyeggwgw" method="POST" novalidate>
+        <!-- shows up as the subject line in your inbox -->
+        <input type="hidden" name="_subject" id="fsubject" value="New message from your portfolio">
+        <!-- spam trap: bots fill this, humans never see it -->
+        <div class="hp" aria-hidden="true"><label>Leave this empty<input type="text" name="_gotcha" tabindex="-1" autocomplete="off"></label></div>
+
+        <div class="field two">
+          <div>
+            <label for="fname">Your name</label>
+            <input id="fname" name="name" type="text" placeholder="Jane Cooper" required>
+          </div>
+          <div>
+            <label for="femail">Email</label>
+            <input id="femail" name="email" type="email" placeholder="jane@company.com" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="ftype">What is this about</label>
+          <select id="ftype" name="topic">
+            <option>Freelance project</option>
+            <option>Job or internship</option>
+            <option>Data cleaning</option>
+            <option>Dashboard or data app</option>
+            <option>Reporting automation</option>
+            <option>Something else</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="fmsg">Message</label>
+          <textarea id="fmsg" name="message" placeholder="What data are you working with, and what do you need out of it?" required></textarea>
+        </div>
+
+        <button class="btn btn-primary" type="submit">
+          Send message
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true"><path d="M5 12h13"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
+
+        <p class="sent" id="sent" role="status"></p>
+        <p class="form-note">Goes straight to my inbox. Prefer to write yourself? <a href="mailto:muhammadhammadateeq@gmail.com" data-copy="muhammadhammadateeq@gmail.com" data-copied="Email address copied">muhammadhammadateeq@gmail.com</a> &mdash; click to copy</p>
+      </form>
+
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer class="foot">
+  <div class="shell foot-in">
+    <p>© <span id="yr">2026</span> Muhammad Hammad Ateeq · Islamabad, PK</p>
+    <nav>
+      <a href="#about">About</a>
+      <a href="#work">Work</a>
+      <a href="#services">Services</a>
+      <a href="#contact">Contact</a>
+      <a href="https://github.com/Hammad4122" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.upwork.com/freelancers/~0116b8b03ef8aa93de" target="_blank" rel="noopener">Upwork</a>
+    </nav>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+  var calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- year ---------- */
+  document.getElementById("yr").textContent = new Date().getFullYear();
+
+  /* ---------- sticky nav border ---------- */
+  var nav = document.getElementById("nav");
+  var onScroll = function(){ nav.classList.toggle("stuck", window.scrollY > 12); };
+  onScroll();
+  window.addEventListener("scroll", onScroll, {passive:true});
+
+  /* ---------- mobile menu ---------- */
+  var burger = document.getElementById("burger");
+  var menu = document.getElementById("menu");
+  var setMenu = function(open){
+    menu.classList.toggle("open", open);
+    burger.setAttribute("aria-expanded", open ? "true" : "false");
+    burger.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+  };
+  burger.addEventListener("click", function(){
+    setMenu(burger.getAttribute("aria-expanded") !== "true");
+  });
+  menu.addEventListener("click", function(e){
+    if(e.target.tagName === "A") setMenu(false);
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape") setMenu(false);
+  });
+  window.addEventListener("resize", function(){
+    if(window.innerWidth > 900) setMenu(false);
+  });
+
+  /* ---------- scroll reveal ---------- */
+  var revealables = document.querySelectorAll(".rv");
+  if(calm || !("IntersectionObserver" in window)){
+    revealables.forEach(function(el){ el.classList.add("in"); });
+  } else {
+    var ro = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){ en.target.classList.add("in"); ro.unobserve(en.target); }
+      });
+    }, {rootMargin:"0px 0px -8% 0px", threshold:.08});
+    revealables.forEach(function(el){ ro.observe(el); });
+  }
+
+  /* ---------- active nav link ---------- */
+  var links = Array.prototype.slice.call(document.querySelectorAll(".nav-links a"));
+  var sections = links.map(function(a){ return document.querySelector(a.getAttribute("href")); }).filter(Boolean);
+  if("IntersectionObserver" in window && sections.length){
+    var so = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(!en.isIntersecting) return;
+        links.forEach(function(a){
+          a.classList.toggle("on", a.getAttribute("href") === "#" + en.target.id);
+        });
+      });
+    }, {rootMargin:"-45% 0px -50% 0px", threshold:0});
+    sections.forEach(function(s){ so.observe(s); });
+  }
+
+  /* ---------- trace table: the one orchestrated moment ---------- */
+  var rows = document.querySelectorAll("#trace tbody tr");
+  var note = document.getElementById("traceNote");
+  var runTrace = function(){
+    if(calm){
+      rows.forEach(function(r){ r.classList.add("lit"); });
+      note.classList.add("lit");
+      return;
+    }
+    rows.forEach(function(r, i){
+      setTimeout(function(){ r.classList.add("lit"); }, 420 + i * 240);
+    });
+    setTimeout(function(){ note.classList.add("lit"); }, 420 + rows.length * 240 + 200);
+  };
+  if("IntersectionObserver" in window){
+    var to = new IntersectionObserver(function(entries){
+      if(entries[0].isIntersecting){ runTrace(); to.disconnect(); }
+    }, {threshold:.35});
+    to.observe(document.getElementById("trace"));
+  } else { runTrace(); }
+
+  /* ---------- clipboard + toast (shared) ---------- */
+  var toastEl = document.getElementById("toast"), toastT;
+  var flash = function(msg, bad){
+    toastEl.textContent = msg;
+    toastEl.classList.toggle("err", !!bad);
+    toastEl.classList.add("show");
+    clearTimeout(toastT);
+    toastT = setTimeout(function(){ toastEl.classList.remove("show"); }, 2400);
+  };
+
+  var copyText = function(text, onOk, onFail){
+    var legacy = function(){
+      var ta = document.createElement("textarea");
+      ta.value = text; ta.setAttribute("readonly", "");
+      ta.style.position = "fixed"; ta.style.top = "0"; ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select(); ta.setSelectionRange(0, text.length);
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch(err){ ok = false; }
+      document.body.removeChild(ta);
+      ok ? onOk() : onFail();
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(onOk, legacy);
+    } else { legacy(); }
+  };
+
+  /* ---------- copy the email address instead of firing mailto ----------
+     A mailto: link opens nothing at all when the visitor has no mail app
+     registered with their OS, which is common on desktop. Copying the
+     address always works. The href is kept so right-click > Copy link
+     and mobile mail apps still behave as expected. */
+  Array.prototype.forEach.call(document.querySelectorAll("[data-copy]"), function(el){
+    el.addEventListener("click", function(e){
+      e.preventDefault();
+      var val = el.getAttribute("data-copy");
+      copyText(val,
+        function(){ flash(el.getAttribute("data-copied") || "Copied"); },
+        function(){ flash("Couldn't copy — the address is " + val, true); }
+      );
+    });
+  });
+
+  /* ---------- copy pip install ---------- */
+  var copyBtn = document.getElementById("copyBtn");
+  copyBtn.addEventListener("click", function(){
+    copyText("pip install pandastrace", function(){
+      copyBtn.textContent = "Copied";
+      copyBtn.classList.add("done");
+      setTimeout(function(){ copyBtn.textContent = "Copy"; copyBtn.classList.remove("done"); }, 1800);
+    }, function(){
+      copyBtn.textContent = "Select it";
+      setTimeout(function(){ copyBtn.textContent = "Copy"; }, 1800);
+    });
+  });
+
+  /* ---------- contact form -> Formspree (background submit) ----------
+     Falls back to a normal page POST if fetch is unavailable, so the
+     form still works on very old browsers. */
+  var form = document.getElementById("cform");
+  if(form){
+    var sent   = document.getElementById("sent");
+    var btn    = form.querySelector("button[type=submit]");
+    var label  = btn.innerHTML;
+    var subjIn = document.getElementById("fsubject");
+
+    var say = function(text, isError){
+      sent.textContent = text;
+      sent.classList.toggle("err", !!isError);
+      sent.classList.add("show");
+    };
+    var busy = function(on){
+      btn.setAttribute("aria-busy", on ? "true" : "false");
+      btn.innerHTML = on ? "Sending&hellip;" : label;
+    };
+
+    form.addEventListener("submit", function(e){
+      var name  = document.getElementById("fname").value.trim();
+      var email = document.getElementById("femail").value.trim();
+      var topic = document.getElementById("ftype").value;
+      var msg   = document.getElementById("fmsg").value.trim();
+
+      /* make the inbox subject useful either way */
+      subjIn.value = topic + " — " + (name || "portfolio enquiry");
+
+      /* no fetch? let the browser POST normally */
+      if(!window.fetch || !window.FormData) return;
+
+      e.preventDefault();
+
+      if(!name || !email || !msg){
+        say("Add your name, email, and a message, then send again.", true);
+        return;
+      }
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){
+        say("That email address looks incomplete — check it and send again.", true);
+        return;
+      }
+
+      busy(true);
+      fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: {"Accept": "application/json"}
+      }).then(function(res){
+        busy(false);
+        if(res.ok){
+          form.reset();
+          say("Sent. I'll reply to " + email + " within 24 hours.", false);
+        } else {
+          res.json().then(function(d){
+            var why = d && d.errors && d.errors.length ? d.errors[0].message : "";
+            say(why || "That didn't send. Email muhammadhammadateeq@gmail.com directly and it'll reach me.", true);
+          }).catch(function(){
+            say("That didn't send. Email muhammadhammadateeq@gmail.com directly and it'll reach me.", true);
+          });
+        }
+      }).catch(function(){
+        busy(false);
+        say("No connection to the mail service. Email muhammadhammadateeq@gmail.com directly and it'll reach me.", true);
+      });
+    });
+  }
+})();
+</script>
+</body>
+</html>
