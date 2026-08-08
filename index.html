@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Muhammad Hammad Ateeq — Python Data Tooling &amp; Dashboards</title>
 <meta name="description" content="Software Engineering student in Islamabad building Python data cleaning tools, Streamlit dashboards, and automated reports. Published PyPI package, four live data apps. Available for freelance work.">
 <meta name="author" content="Muhammad Hammad Ateeq">
@@ -51,8 +51,10 @@
   --sans:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
 
   --shell:1180px;
-  --gutter:clamp(20px,5vw,48px);
-  --pad-y:clamp(72px,10vw,128px);
+  /* gutter floor is 16px so narrow phones keep usable content width */
+  --gutter:clamp(16px,5vw,48px);
+  --pad-y:clamp(56px,9vw,128px);
+  --nav-h:70px;          /* single source of truth: nav bar + mobile menu offset */
   --r:14px;
 }
 
@@ -67,7 +69,11 @@ body{
   line-height:1.72;
   font-weight:400;
   -webkit-font-smoothing:antialiased;
+  /* clip is preferred: unlike hidden it does not create a scroll container,
+     so position:sticky on the nav keeps working. hidden is the fallback. */
   overflow-x:hidden;
+  overflow-x:clip;
+  overflow-wrap:break-word;
 }
 img{max-width:100%;display:block;}
 a{color:inherit;text-decoration:none}
@@ -89,7 +95,12 @@ body::after{
   -webkit-mask-image:radial-gradient(circle at 50% 22%,#000 0%,transparent 72%);
 }
 
-.shell{width:100%;max-width:var(--shell);margin-inline:auto;padding-inline:var(--gutter);position:relative;z-index:1}
+.shell{
+  width:100%;max-width:var(--shell);margin-inline:auto;position:relative;z-index:1;
+  /* max() keeps content clear of rounded corners / notches in landscape */
+  padding-left:max(var(--gutter),env(safe-area-inset-left));
+  padding-right:max(var(--gutter),env(safe-area-inset-right));
+}
 
 ::selection{background:var(--green);color:#04180D}
 :focus-visible{outline:2px solid var(--green);outline-offset:3px;border-radius:4px}
@@ -113,6 +124,9 @@ body::after{
 .lede{color:var(--fg-mid);max-width:62ch;margin:0 0 46px;font-size:clamp(15.5px,1.7vw,17.5px)}
 
 .section{padding-block:var(--pad-y);position:relative;z-index:1}
+/* the nav is sticky, so anchor jumps must stop short of it or the
+   heading lands underneath the bar */
+section[id],main[id]{scroll-margin-top:calc(var(--nav-h) + 14px)}
 .section + .section{border-top:1px solid var(--rule)}
 
 /* ================================================================
@@ -120,7 +134,7 @@ body::after{
    ================================================================ */
 .nav{position:sticky;top:0;z-index:60;background:rgba(7,10,8,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid transparent;transition:border-color .3s,background .3s}
 .nav.stuck{border-bottom-color:var(--rule);background:rgba(7,10,8,.93)}
-.nav-in{display:flex;align-items:center;justify-content:space-between;height:70px;gap:20px}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:var(--nav-h);gap:16px}
 .brand{font-family:var(--mono);font-weight:700;font-size:15px;letter-spacing:-.02em;display:flex;align-items:center;gap:9px;white-space:nowrap}
 .brand i{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px var(--green-wash);flex:none}
 .brand span{color:var(--fg-dim);font-weight:400}
@@ -150,14 +164,22 @@ body::after{
   .burger{display:grid}
   .nav-cta{display:none}
   .nav-links{
-    position:fixed;inset:70px 0 auto;flex-direction:column;align-items:stretch;gap:0;
+    position:fixed;inset:var(--nav-h) 0 auto;flex-direction:column;align-items:stretch;gap:0;
     background:rgba(7,10,8,.98);backdrop-filter:blur(18px);border-bottom:1px solid var(--rule);
     padding:10px var(--gutter) 22px;
+    /* short/landscape screens: menu scrolls instead of running off the bottom */
+    max-height:calc(100vh - var(--nav-h));
+    max-height:calc(100dvh - var(--nav-h));
+    overflow-y:auto;overscroll-behavior:contain;
     transform:translateY(-14px);opacity:0;visibility:hidden;transition:.24s
   }
   .nav-links.open{transform:none;opacity:1;visibility:visible}
-  .nav-links a{padding:13px 4px;font-size:15px;border-bottom:1px solid var(--rule)}
+  .nav-links a{padding:14px 4px;font-size:15px;border-bottom:1px solid var(--rule)}
   .nav-links li:last-child a{border-bottom:0}
+}
+@media(max-width:480px){
+  :root{--nav-h:62px}
+  .brand{font-size:14px}
 }
 
 /* ================================================================
@@ -173,7 +195,9 @@ body::after{
 
 .hero h1{
   font-family:var(--mono);font-weight:800;letter-spacing:-.05em;line-height:1.02;
-  font-size:clamp(38px,6.6vw,68px);margin:0 0 18px
+  /* "Muhammad Hammad" is 15 mono characters — the floor is set so it still
+     fits a 320px screen without clipping. Raise it and small phones break. */
+  font-size:clamp(32px,9vw,68px);margin:0 0 18px
 }
 .hero h1 em{font-style:normal;color:var(--green);display:block}
 
@@ -260,8 +284,27 @@ body::after{
 .dot.g{background:var(--green-deep)}
 .trace-bar span{font-family:var(--mono);font-size:11.5px;color:var(--fg-dim);margin-left:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-.trace-body{padding:16px 14px;font-family:var(--mono);font-size:12.5px;line-height:1.85;overflow-x:auto}
+.trace-body{
+  padding:16px 14px;font-family:var(--mono);font-size:12.5px;line-height:1.85;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain
+}
+/* a thin visible scrollbar tells people the panel swipes instead of looking cropped */
+.trace-body::-webkit-scrollbar{height:6px}
+.trace-body::-webkit-scrollbar-track{background:transparent}
+.trace-body::-webkit-scrollbar-thumb{background:var(--rule-hi);border-radius:99px}
+.trace-body::-webkit-scrollbar-thumb:hover{background:var(--green-deep)}
+.trace-body{scrollbar-width:thin;scrollbar-color:var(--rule-hi) transparent}
+
 .trace-cmd{color:var(--fg-dim);margin-bottom:12px;white-space:nowrap}
+/* Two classes on purpose. `.feat p` further down the sheet is (0,1,1) and
+   was winning against inheritance, rendering this panel's code at 15.5px
+   inside the featured card while the identical hero panel sat at 12.5px.
+   That size difference is what pushed the card off the side of the screen.
+   Scoping the panel's own type keeps it independent of its surroundings. */
+.trace-body .trace-cmd{font-size:12.5px}
+.trace-body .trace-note{font-size:11.5px}
+/* the usage.py snippet is real code: it scrolls rather than wrapping mid-expression */
+.trace-cmd.code{margin:0;white-space:pre;line-height:1.9}
 .trace-cmd b{color:var(--green);font-weight:400}
 
 table.tr-tab{width:100%;border-collapse:collapse;min-width:326px}
@@ -353,10 +396,11 @@ table.tr-tab tr.lit{opacity:1;transform:none;transition:opacity .3s ease,transfo
   font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
   color:var(--green);background:var(--green-wash);border:1px solid var(--green-line);padding:5px 11px;border-radius:999px
 }
-@media(max-width:620px){.pill{position:static;display:inline-block;margin-bottom:14px}}
+/* .pill returns to the normal flow below 900px — see the RESPONSIVE block */
 
 .install{display:flex;align-items:center;gap:10px;background:var(--ink);border:1px solid var(--rule-hi);border-radius:10px;padding:12px 14px;margin:0 0 18px;font-family:var(--mono);font-size:13px;flex-wrap:wrap}
-.install code{color:var(--fg);flex:1;min-width:180px;white-space:nowrap;overflow-x:auto}
+.install code{color:var(--fg);flex:1 1 auto;min-width:0;white-space:nowrap;overflow-x:auto;scrollbar-width:none}
+.install code::-webkit-scrollbar{display:none}
 .install code b{color:var(--green);font-weight:400}
 .copy{
   background:var(--panel-2);border:1px solid var(--rule-hi);border-radius:7px;padding:6px 12px;
@@ -379,7 +423,7 @@ table.tr-tab tr.lit{opacity:1;transform:none;transition:opacity .3s ease,transfo
 .link.muted:hover{color:var(--fg);border-bottom-color:var(--rule-hi)}
 
 /* grid */
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:18px}
 .card{
   border:1px solid var(--rule);border-radius:var(--r);background:var(--panel);
   padding:24px;display:flex;flex-direction:column;transition:border-color .2s,transform .2s,background .2s
@@ -393,7 +437,7 @@ table.tr-tab tr.lit{opacity:1;transform:none;transition:opacity .3s ease,transfo
 /* ================================================================
    SKILLS
    ================================================================ */
-.stack{display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:var(--r);overflow:hidden}
+.stack{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(232px,100%),1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:var(--r);overflow:hidden}
 .stack section{background:var(--panel);padding:26px 24px}
 .stack h3{
   font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;
@@ -407,7 +451,7 @@ table.tr-tab tr.lit{opacity:1;transform:none;transition:opacity .3s ease,transfo
 /* ================================================================
    SERVICES
    ================================================================ */
-.svc{display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:18px;margin-bottom:26px}
+.svc{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(272px,100%),1fr));gap:18px;margin-bottom:26px}
 .svc article{border:1px solid var(--rule);border-radius:var(--r);background:var(--panel);padding:28px 26px;transition:border-color .2s,background .2s}
 .svc article:hover{border-color:var(--green-line);background:var(--panel-2)}
 .svc .ico{width:40px;height:40px;border-radius:10px;background:var(--green-wash);border:1px solid var(--green-line);display:grid;place-items:center;color:var(--green);margin-bottom:18px}
@@ -428,7 +472,7 @@ table.tr-tab tr.lit{opacity:1;transform:none;transition:opacity .3s ease,transfo
 /* ================================================================
    TESTIMONIALS (styles kept live so the commented block works instantly)
    ================================================================ */
-.quotes{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px}
+.quotes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(290px,100%),1fr));gap:18px}
 .quote{border:1px solid var(--rule);border-radius:var(--r);background:var(--panel);padding:28px 26px;display:flex;flex-direction:column}
 .quote .mark{font-family:var(--mono);font-size:30px;color:var(--green-deep);line-height:1;margin-bottom:10px}
 .quote blockquote{margin:0 0 20px;color:var(--fg-mid);font-size:15px;line-height:1.72;flex:1}
@@ -479,7 +523,9 @@ table.tr-tab tr.lit{opacity:1;transform:none;transition:opacity .3s ease,transfo
 .sent.show{display:block}
 .sent.err{border-color:rgba(224,164,88,.42);background:var(--amber-wash);color:var(--amber)}
 .btn[aria-busy="true"]{opacity:.6;pointer-events:none}
-.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+/* spam trap. Clipped rather than pushed off-canvas — left:-9999px was
+   inflating the document's scroll width and causing a phantom sideways scroll. */
+.hp{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
 
 /* click-to-copy email + confirmation toast */
 .vmail{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -488,7 +534,7 @@ table.tr-tab tr.lit{opacity:1;transform:none;transition:opacity .3s ease,transfo
 .copy.mini{padding:3px 9px;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
 a[data-copy]{cursor:copy}
 .toast{
-  position:fixed;left:50%;bottom:26px;z-index:200;transform:translate(-50%,14px);
+  position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));z-index:200;transform:translate(-50%,14px);
   font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--green);
   background:rgba(13,19,16,.97);border:1px solid var(--green-line);border-radius:10px;
   padding:11px 18px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
@@ -513,6 +559,96 @@ a[data-copy]{cursor:copy}
    ================================================================ */
 .rv{opacity:0;transform:translateY(16px)}
 .rv.in{opacity:1;transform:none;transition:opacity .55s cubic-bezier(.2,.7,.3,1),transform .55s cubic-bezier(.2,.7,.3,1)}
+
+/* ----------------------------------------------------------------
+   Grid and flex children default to min-width:auto, which means an
+   unwrappable child (a code line, a long table) can force its whole
+   track wider than the screen. Setting 0 lets the track win and the
+   inner panel scroll instead.
+   ---------------------------------------------------------------- */
+.hero-grid>*,.feat-grid>*,.contact-grid>*,.about-grid>*,.cards>*,.svc>*,.stack>*,.quotes>*{min-width:0}
+.trace,.trace-body,.install{max-width:100%}
+
+/* ================================================================
+   RESPONSIVE
+   Everything that changes with screen width lives here, largest
+   breakpoint first, so you can read it top-down as the screen shrinks.
+   ================================================================ */
+
+/* ---- 900px: tablets and below. Two-column blocks become one. ----
+   This is the same width the nav collapses at, so the whole page
+   switches to its narrow layout in one step. */
+@media(max-width:900px){
+  .feat-grid{grid-template-columns:1fr}
+  .contact-grid{grid-template-columns:1fr}
+
+  /* the badge is absolutely positioned on desktop; in one column it
+     would land on top of the code panel, so put it back in the flow */
+  .pill{position:static;display:inline-block;margin-bottom:14px}
+}
+
+/* ---- 620px: phones. Tighten the frames so content keeps its width. ---- */
+@media(max-width:620px){
+  .feat{padding:20px 16px}
+  .card,.svc article,.quote{padding:22px 18px}
+  .form{padding:20px 16px}
+  .stack section{padding:22px 18px}
+  .svc-foot{padding:20px 18px}
+
+  /* code and tables get a smaller measure so far more of them fits
+     on screen before the panel needs to scroll sideways */
+  .trace-body,.trace-body .trace-cmd{font-size:11px}
+  .trace-body{padding:14px 12px;line-height:1.8}
+  .trace-body .trace-note{font-size:11px}
+  .trace-cmd{margin-bottom:10px}
+  table.tr-tab{min-width:0}
+  table.tr-tab td,table.tr-tab th{font-size:11px}
+  table.tr-tab td:first-child{padding-right:12px}
+
+  /* full-width actions are easier to hit with a thumb */
+  .btn-row{gap:10px}
+  .btn-row .btn{flex:1 1 100%;justify-content:center}
+  .svc-foot{flex-direction:column;align-items:stretch}
+  .svc-foot .btn{justify-content:center}
+
+  .foot-in{flex-direction:column;align-items:flex-start;gap:14px}
+  .foot nav{gap:14px}
+}
+
+/* ---- 560px: form controls. ----
+   iOS Safari zooms the whole page in when a focused input is under 16px.
+   Setting exactly 16px keeps the layout still when someone starts typing. */
+@media(max-width:560px){
+  .field input,.field textarea,.field select{font-size:16px}
+  .field textarea{min-height:112px}
+  .form .btn-primary{padding:16px}
+}
+
+/* ---- 400px: smallest phones still in real use. ---- */
+@media(max-width:400px){
+  .trace-body,.trace-body .trace-cmd{font-size:10.5px}
+  .trace-body{padding:12px 10px}
+  .install{padding:10px 12px}
+  .copy{padding:7px 10px}
+  .tags li{font-size:10.5px;padding:4px 8px}
+  .cmeta li{padding:10px 0}
+  .socials a{width:40px;height:40px}
+}
+
+/* ---- touch devices: no hover lift, bigger targets. ----
+   Hover transforms stick on touch screens because there is no un-hover. */
+@media(hover:none){
+  .card:hover{transform:none}
+  .socials a:hover{transform:none}
+  .copy,.copy.mini{min-height:36px}
+  .link{padding-block:4px}
+}
+
+/* ---- short landscape screens: don't waste height on padding ---- */
+@media(max-height:520px) and (orientation:landscape){
+  :root{--pad-y:44px}
+  .hero{padding-block:32px}
+}
 
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
@@ -761,7 +897,7 @@ a[data-copy]{cursor:copy}
               <span>usage.py</span>
             </div>
             <div class="trace-body">
-              <p class="trace-cmd" style="margin:0;white-space:pre-wrap;line-height:1.9"><span style="color:var(--green)">from</span> pandastrace <span style="color:var(--green)">import</span> trace
+              <p class="trace-cmd code"><span style="color:var(--green)">from</span> pandastrace <span style="color:var(--green)">import</span> trace
 
 df = trace(pd.read_csv(<span style="color:var(--amber)">"orders.csv"</span>))
 df = df.dropna().drop_duplicates()
